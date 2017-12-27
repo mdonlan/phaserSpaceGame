@@ -1,0 +1,7 @@
+TODO NOTES FOR DOGE GAME
+
+
+----------------------------
+12/27/17 3:34PM 
+----------------------------
+add buttons for play and restart
