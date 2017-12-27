@@ -5,3 +5,9 @@ TODO NOTES FOR DOGE GAME
 12/27/17 3:34PM 
 ----------------------------
 add buttons for play and restart
+show highscore
+add gun and shooting
+add collision with bullets and asteroids
+add more types of powerups
+add shields
+add health
