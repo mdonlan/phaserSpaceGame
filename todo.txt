@@ -4,10 +4,18 @@ TODO NOTES FOR DOGE GAME
 ----------------------------
 12/27/17 3:34PM 
 ----------------------------
-add buttons for play and restart
-show highscore
-add gun and shooting
-add collision with bullets and asteroids
-add more types of powerups
-add shields
-add health
+--add buttons for play and restart
+--show highscore -- done --
+--add gun and shooting -- done --
+--add collision with bullets and asteroids -- done --
+--add more types of powerups
+--add shields -- done --
+--add health -- done --
+
+----------------------------
+12/28/17 1:11AM 
+----------------------------
+--add visible gun cooldown timer
+--give points for getting powerups and blowing up asteroids
+--add points powerup which gives extra points
+--give invincible powerup

@@ -4,7 +4,7 @@ function preload() {
     // set data
     count = 0;
     score = 0;
-    fireCoolDown = 101;
+    fireCoolDown = 100;
     powerupTypes = ["healthPowerup", "shieldPowerup"];
     hullHealth = 100;
 
@@ -102,6 +102,7 @@ function create() {
     }
 
     // create UI text
+    fireCoolDownUI();
 
     // player health text
     hullHealthText = "Hull Health: " + hullHealth;
@@ -117,14 +118,21 @@ function create() {
 
 function update() {
     // check for user input
-    if (leftKey.isDown || aKey.isDown)
-    {
+    if (leftKey.isDown || aKey.isDown) {
         //rocket.body.velocity.setTo(-200,0);
         rocket.x = rocket.x - 10;
-    } else if (rightKey.isDown || dKey.isDown) {
+    }
+    if (rightKey.isDown || dKey.isDown) {
         //rocket.body.velocity.setTo(200,0);
         rocket.x = rocket.x + 10;
-    } else if (spaceKey.isDown) {
+    }
+    if(upKey.isDown || wKey.isDown) {
+        rocket.y = rocket.y - 5;
+    }
+    if(downKey.isDown || sKey.isDown) {
+        rocket.y = rocket.y + 5;
+    }
+    if (spaceKey.isDown) {
         if(fireCoolDown >= 100) {
             fireCoolDown = 0;
             var newLaser = game.add.sprite(rocket.x, rocket.y, 'redLaser');
@@ -156,6 +164,16 @@ function update() {
         shield.x = rocket.x;
         shield.y = rocket.y;
     }
+
+    // update fire cooldown text
+    if(fireCoolDown <= 100) {
+        cooldownTextRender.setText("Reloading: " + fireCoolDown + '%');
+    } else {
+        cooldownTextRender.setText("");
+    }
+    cooldownTextRender.x = rocket.x + 75;
+    cooldownTextRender.y = rocket.y + 5;
+
 }
 
 function render() {
@@ -182,7 +200,7 @@ function onCollision(rocket, asteroid) {
 function events() {
     scoreLoop = game.time.events.loop(Phaser.Timer.SECOND, updateScore);
     // spawn asteroid every 100ms
-    spawnAsteroidLoop = game.time.events.loop(1000, spawnAsteroid);
+    spawnAsteroidLoop = game.time.events.loop(150, spawnAsteroid);
     // spawn powerup every 1000ms
     spawnPowerupLoop = game.time.events.loop(1000, spawnPowerup);
 };
@@ -268,10 +286,12 @@ function powerupCollision(rocket, powerup) {
 
 function spawnShield() {
     // spawn new shield
-    shield = game.add.sprite(rocket.world.x, rocket.world.y, 'shield1');
-    shield.anchor.setTo(0.5,0.5);
-    shield.scale.setTo(0.5,0.5);
-    game.physics.enable(shield, Phaser.Physics.ARCADE);
+    if(typeof shield == 'undefined') {
+        shield = game.add.sprite(rocket.world.x, rocket.world.y, 'shield1');
+        shield.anchor.setTo(0.5,0.5);
+        shield.scale.setTo(0.5,0.5);
+        game.physics.enable(shield, Phaser.Physics.ARCADE);
+    }
 };
 
 function createPlayAgainButton() {
@@ -290,3 +310,10 @@ function shieldCollision(shield, asteroid) {
     shield.kill();
     asteroid.kill();
 };
+
+function fireCoolDownUI() {
+    cooldownText = "Reloading: " + fireCoolDown;
+    cooldownTextStyle = { font: "12px Arial", fill: "#dddddd", align: "center" };
+    cooldownTextRender = game.add.text(rocket.x, rocket.y, cooldownText, cooldownTextStyle);
+    cooldownTextRender.anchor.setTo(0.5,0.5);
+}
