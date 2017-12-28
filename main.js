@@ -191,8 +191,12 @@ function updateScore() {
 function updateText() {
     // score text
     scoreTextRender.setText("Score: " + score);
-    if(score > highscore) {
-        highscoreTextRender.setText("Highscore: " + score);
+    if(!localStorage.getItem("highscore")) {
+    
+    } else {
+        if(score > highscore) {
+            highscoreTextRender.setText("Highscore: " + score);
+        }
     }
 }
 
