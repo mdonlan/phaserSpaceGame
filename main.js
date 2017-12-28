@@ -1,18 +1,21 @@
 var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
-var count = 0;
-var score = 0;
-var highscore = 0;
-var fireCoolDown = 101;
-var powerupTypes = ["healthPowerup", "sheildPowerup"]
 
 function preload() {
+    // set data
+    count = 0;
+    score = 0;
+    fireCoolDown = 101;
+    powerupTypes = ["healthPowerup", "shieldPowerup"];
+    hullHealth = 100;
+
     // load images
     game.load.image('background', 'assets/background.jpg');
     game.load.image('asteroid', 'assets/asteroid_01.png');
     game.load.image('rocket', 'assets/playerShip1_red.png');
     game.load.image('healthPowerup', 'assets/healthPowerup.png');
     game.load.image('redLaser', 'assets/redLaser.png');
-    game.load.image('sheildPowerup', 'assets/powerupGreen_shield.png');
+    game.load.image('shieldPowerup', 'assets/powerupGreen_shield.png');
+    game.load.image('shield1', 'assets/shield1.png');
     game.load.image('asteroid1', 'assets/asteroids/asteroid1.png');
     game.load.image('asteroid2', 'assets/asteroids/asteroid2.png');
     game.load.image('asteroid3', 'assets/asteroids/asteroid3.png');
@@ -50,8 +53,8 @@ function create() {
     rocket.anchor.setTo(0.5,0.5);
 
     // set height and width values
-    maxX = (game.width / 10) * 9;
-    minX = (game.width / 10) * 1;
+    maxX = (game.width);
+    minX = (-5);
     maxY = (game.height);
 
     // enable phaser physics
@@ -59,7 +62,7 @@ function create() {
 
     // enable rocket physics
     game.physics.enable(rocket, Phaser.Physics.ARCADE);
-    rocket.body.setSize(100, 100, 0, 0);
+    rocket.body.setSize(50, 50, 20, 0);
     
 
     // setup sprite groups
@@ -93,6 +96,14 @@ function create() {
         highscoreTextRender.anchor.setTo(0.5,0.5);
     
     }
+
+    // create UI text
+
+    // player health text
+    hullHealthText = "Hull Health: " + hullHealth;
+    hullHealthTextStyle = { font: "32px Arial", fill: "#dddddd", align: "center" };
+    hullHealthTextRender = game.add.text(game.world.centerX + 410, 30, hullHealthText, hullHealthTextStyle);
+    hullHealthTextRender.anchor.setTo(0.5,0.5);
     
     // run events function
     // currently starts asteroid spawing event and score updating event
@@ -101,27 +112,14 @@ function create() {
 }
 
 function update() {
-    fireCoolDown++;
-    // show rocket hitbox
-    game.debug.body(rocket, "#ff9090", false);
-    
-    // show each asteroid hitbox
-    asteroidGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);	
-    // show each powerup hitbox
-    powerupGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);	
-    // check for collisions
-    this.game.physics.arcade.overlap(rocket, asteroidGroup, onCollision, null);
-    this.game.physics.arcade.overlap(laserGroup, asteroidGroup, laserCollision, null);
-    this.game.physics.arcade.overlap(rocket, powerupGroup, powerupCollision, null);
-
     // check for user input
     if (leftKey.isDown || aKey.isDown)
     {
-        rocket.body.velocity.setTo(-200,0);
-    }
-    else if (rightKey.isDown || dKey.isDown)
-    {
-        rocket.body.velocity.setTo(200,0);
+        //rocket.body.velocity.setTo(-200,0);
+        rocket.x = rocket.x - 10;
+    } else if (rightKey.isDown || dKey.isDown) {
+        //rocket.body.velocity.setTo(200,0);
+        rocket.x = rocket.x + 10;
     } else if (spaceKey.isDown) {
         if(fireCoolDown >= 100) {
             fireCoolDown = 0;
@@ -133,6 +131,27 @@ function update() {
             laserGroup.add(newLaser);
         }
     }
+    fireCoolDown++;
+    // show rocket hitbox
+    //game.debug.body(rocket, "#ff9090", false);
+    // show each asteroid hitbox
+    //asteroidGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);	
+    // show each powerup hitbox
+    //powerupGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);	
+    // check for collisions
+    this.game.physics.arcade.overlap(rocket, asteroidGroup, onCollision, null);
+    this.game.physics.arcade.overlap(laserGroup, asteroidGroup, laserCollision, null);
+    this.game.physics.arcade.overlap(rocket, powerupGroup, powerupCollision, null);
+    
+
+    // update shield position
+    if(typeof shield == 'undefined') {
+
+    } else {
+        this.game.physics.arcade.overlap(shield, asteroidGroup, shieldCollision, null);
+        shield.x = rocket.x;
+        shield.y = rocket.y;
+    }
 }
 
 function render() {
@@ -140,20 +159,26 @@ function render() {
     game.debug.text(game.time.fps, 2, 14, "#00ff00");
 };
 
-function onCollision() {
-    rocket.kill();
-    localStorage.setItem("highscore" , score);
-    game.time.events.remove(scoreLoop);
-};
-
-function onPowerup() {
-
+function onCollision(rocket, asteroid) {
+    hullHealth = hullHealth - 25;
+    if(hullHealth <= 0) {
+        asteroid.kill();
+        rocket.kill();
+        if(score > localStorage.getItem("highscore")) {
+            localStorage.setItem("highscore" , score);
+        }
+        game.time.events.remove(scoreLoop);
+        createPlayAgainButton();
+    } else {
+        asteroid.kill();
+        hullHealthTextRender.setText("Hull Health: " + hullHealth);
+    }
 };
 
 function events() {
     scoreLoop = game.time.events.loop(Phaser.Timer.SECOND, updateScore);
     // spawn asteroid every 100ms
-    spawnAsteroidLoop = game.time.events.loop(100, spawnAsteroid);
+    spawnAsteroidLoop = game.time.events.loop(1000, spawnAsteroid);
     // spawn powerup every 1000ms
     spawnPowerupLoop = game.time.events.loop(1000, spawnPowerup);
 };
@@ -174,6 +199,7 @@ function updateText() {
 function loadHighscore() {
     if(!localStorage.getItem("highscore")) {
         console.log('no previous highscore saved');
+        highscore = 0;
     } else {
         console.log('found a saved highscore');
         highscore = localStorage.getItem("highscore");
@@ -183,12 +209,20 @@ function loadHighscore() {
 function spawnAsteroid() {
     // get random spawn location
     var randX = Math.floor(Math.random() * maxX) + minX;
+    var randVelocity = Math.floor(Math.random() * 200) + 200;
+    var randAngle = Math.floor(Math.random() * -200) + 200;
     var randAsteroid = Math.floor(Math.random() * 20) + 1;
     // spawn new asteroid
     var newAsteroid = game.add.sprite(randX, -30, 'asteroid' + randAsteroid);
     game.physics.enable(newAsteroid, Phaser.Physics.ARCADE);
     asteroidGroup.add(newAsteroid);
-    newAsteroid.body.velocity.setTo(0,200);
+    newAsteroid.body.velocity.setTo(randAngle,randVelocity);
+    game.time.events.add(10000, killAfterTime, newAsteroid);
+};
+
+function killAfterTime() {
+    // destroy asteroids after a certain amount of time
+    this.kill();
 };
 
 function spawnPowerup() {
@@ -213,9 +247,38 @@ function laserCollision(laser, asteroid) {
 
 function powerupCollision(rocket, powerup) {
     console.log('collected a powerup');
+    console.log(powerup.key)
     powerup.kill();
 
     // give player powerup skill
+    if(powerup.key == 'shieldPowerup') {
+        
+        // spawn new shield
+        shield = game.add.sprite(rocket.world.x, rocket.world.y, 'shield1');
+        shield.anchor.setTo(0.5,0.5);
+        shield.scale.setTo(0.5,0.5);
+        game.physics.enable(shield, Phaser.Physics.ARCADE);
+        //powerupGroup.add(newPowerup);
+        //newPowerup.body.velocity.setTo(0,200);
+    } else if (powerup.key == 'healthPowerup') {
 
+    }
 
+};
+
+function createPlayAgainButton() {
+    playAgainButton = game.add.text(game.world.centerX, game.world.centerY, "PLAY AGAIN", { font: "65px Arial", fill: "#dddddd", align: "center", backgroundColor: "#111111" });
+    playAgainButton.anchor.set(0.5);
+    playAgainButton.inputEnabled = true;
+    playAgainButton.events.onInputDown.add(clickedPlayAgainButton);
+};
+
+function clickedPlayAgainButton() {
+    console.log('clicked play again button')
+    game.state.start(game.state.current);
+};
+
+function shieldCollision(shield, asteroid) {
+    shield.kill();
+    asteroid.kill();
 };
