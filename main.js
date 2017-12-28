@@ -12,7 +12,7 @@ function preload() {
     game.load.image('background', 'assets/background.jpg');
     game.load.image('asteroid', 'assets/asteroid_01.png');
     game.load.image('rocket', 'assets/playerShip1_red.png');
-    game.load.image('healthPowerup', 'assets/healthPowerup.png');
+    game.load.image('healthPowerup', 'assets/pill_blue.png');
     game.load.image('redLaser', 'assets/redLaser.png');
     game.load.image('shieldPowerup', 'assets/powerupGreen_shield.png');
     game.load.image('shield1', 'assets/shield1.png');
@@ -88,6 +88,10 @@ function create() {
     scoreTextRender.anchor.setTo(0.5,0.5);
     if(!localStorage.getItem("highscore")) {
         // no highscore, set current score to highscore
+        highscoreText = "Highscore: " + highscore;
+        highscoreTextStyle = { font: "32px Arial", fill: "#dddddd", align: "center" };
+        highscoreTextRender = game.add.text(game.world.centerX - 110, 30, highscoreText, highscoreTextStyle);
+        highscoreTextRender.anchor.setTo(0.5,0.5);
     } else {
         // render highscore
         highscoreText = "Highscore: " + highscore;
@@ -191,12 +195,9 @@ function updateScore() {
 function updateText() {
     // score text
     scoreTextRender.setText("Score: " + score);
-    if(!localStorage.getItem("highscore")) {
     
-    } else {
-        if(score > highscore) {
-            highscoreTextRender.setText("Highscore: " + score);
-        }
+    if(score > highscore) {
+        highscoreTextRender.setText("Highscore: " + score);
     }
 }
 
@@ -256,18 +257,21 @@ function powerupCollision(rocket, powerup) {
 
     // give player powerup skill
     if(powerup.key == 'shieldPowerup') {
-        
-        // spawn new shield
-        shield = game.add.sprite(rocket.world.x, rocket.world.y, 'shield1');
-        shield.anchor.setTo(0.5,0.5);
-        shield.scale.setTo(0.5,0.5);
-        game.physics.enable(shield, Phaser.Physics.ARCADE);
-        //powerupGroup.add(newPowerup);
-        //newPowerup.body.velocity.setTo(0,200);
+        spawnShield();
     } else if (powerup.key == 'healthPowerup') {
-
+        if(hullHealth < 100) {
+            hullHealth = hullHealth + 25;
+            hullHealthTextRender.setText("Hull Health: " + hullHealth);
+        }
     }
+};
 
+function spawnShield() {
+    // spawn new shield
+    shield = game.add.sprite(rocket.world.x, rocket.world.y, 'shield1');
+    shield.anchor.setTo(0.5,0.5);
+    shield.scale.setTo(0.5,0.5);
+    game.physics.enable(shield, Phaser.Physics.ARCADE);
 };
 
 function createPlayAgainButton() {
