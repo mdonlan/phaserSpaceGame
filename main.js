@@ -11,7 +11,7 @@ function preload() {
     // load images
     game.load.image('background', 'assets/background.jpg');
     game.load.image('asteroid', 'assets/asteroid_01.png');
-    game.load.image('rocket', 'assets/playerShip1_red.png');
+    game.load.image('ship', 'assets/playerShip1_red.png');
     game.load.image('healthPowerup', 'assets/pill_blue.png');
     game.load.image('redLaser', 'assets/redLaser.png');
     game.load.image('shieldPowerup', 'assets/powerupGreen_shield.png');
@@ -37,6 +37,9 @@ function preload() {
     game.load.image('asteroid19', 'assets/asteroids/asteroid19.png');
     game.load.image('asteroid20', 'assets/asteroids/asteroid20.png');
 
+    // load audio
+    
+
     // load highscore
     loadHighscore();
 }
@@ -47,10 +50,12 @@ function create() {
     var background = game.add.sprite(0, 0, 'background');
     background.height = game.height;
     background.width = game.width;
-    // display rocket image
-    rocket = game.add.sprite(game.world.centerX, game.height - 30, 'rocket');
-    rocket.scale.setTo(0.25,0.25);
-    rocket.anchor.setTo(0.5,0.5);
+    // display ship image
+    ship = game.add.sprite(game.world.centerX, game.height - 60, 'ship');
+    //ship.scale.setTo(0.25,0.25);
+    //ship.anchor.setTo(0.5,0.5);
+    ship.height = 50;
+    ship.width = 75;
 
     // set height and width values
     maxX = (game.width);
@@ -60,9 +65,9 @@ function create() {
     // enable phaser physics
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    // enable rocket physics
-    game.physics.enable(rocket, Phaser.Physics.ARCADE);
-    rocket.body.setSize(50, 50, 20, 0);
+    // enable ship physics
+    game.physics.enable(ship, Phaser.Physics.ARCADE);
+    ship.body.setSize(100, 50, 0, 20);
     
 
     // setup sprite groups
@@ -113,29 +118,30 @@ function create() {
     // run events function
     // currently starts asteroid spawing event and score updating event
     events();
+    spawnShield();
     
 }
 
 function update() {
     // check for user input
     if (leftKey.isDown || aKey.isDown) {
-        //rocket.body.velocity.setTo(-200,0);
-        rocket.x = rocket.x - 10;
+        //ship.body.velocity.setTo(-200,0);
+        ship.x = ship.x - 10;
     }
     if (rightKey.isDown || dKey.isDown) {
-        //rocket.body.velocity.setTo(200,0);
-        rocket.x = rocket.x + 10;
+        //ship.body.velocity.setTo(200,0);
+        ship.x = ship.x + 10;
     }
     if(upKey.isDown || wKey.isDown) {
-        rocket.y = rocket.y - 5;
+        ship.y = ship.y - 5;
     }
     if(downKey.isDown || sKey.isDown) {
-        rocket.y = rocket.y + 5;
+        ship.y = ship.y + 5;
     }
     if (spaceKey.isDown) {
         if(fireCoolDown >= 100) {
             fireCoolDown = 0;
-            var newLaser = game.add.sprite(rocket.x, rocket.y, 'redLaser');
+            var newLaser = game.add.sprite(ship.x + 37, ship.y, 'redLaser');
             game.physics.enable(newLaser, Phaser.Physics.ARCADE);
             newLaser.body.velocity.setTo(0,-600);
             newLaser.scale.setTo(0.25,0.25);
@@ -144,16 +150,16 @@ function update() {
         }
     }
     fireCoolDown++;
-    // show rocket hitbox
-    //game.debug.body(rocket, "#ff9090", false);
+    // show ship hitbox
+    //game.debug.body(ship, "#ff9090", false);
     // show each asteroid hitbox
     //asteroidGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);	
     // show each powerup hitbox
     //powerupGroup.forEachAlive(game.debug.body,game.debug,"#ff9090",false);	
     // check for collisions
-    this.game.physics.arcade.overlap(rocket, asteroidGroup, onCollision, null);
+    this.game.physics.arcade.overlap(ship, asteroidGroup, onCollision, null);
     this.game.physics.arcade.overlap(laserGroup, asteroidGroup, laserCollision, null);
-    this.game.physics.arcade.overlap(rocket, powerupGroup, powerupCollision, null);
+    this.game.physics.arcade.overlap(ship, powerupGroup, powerupCollision, null);
     
 
     // update shield position
@@ -161,8 +167,8 @@ function update() {
 
     } else {
         this.game.physics.arcade.overlap(shield, asteroidGroup, shieldCollision, null);
-        shield.x = rocket.x;
-        shield.y = rocket.y;
+        shield.x = ship.x + 38;
+        shield.y = ship.y + 15;
     }
 
     // update fire cooldown text
@@ -171,21 +177,22 @@ function update() {
     } else {
         cooldownTextRender.setText("");
     }
-    cooldownTextRender.x = rocket.x + 75;
-    cooldownTextRender.y = rocket.y + 5;
+    cooldownTextRender.x = ship.x + 100;
+    cooldownTextRender.y = ship.y + 12;
 
 }
 
 function render() {
     // show fps
     game.debug.text(game.time.fps, 2, 14, "#00ff00");
+    //game.debug.body(ship);
 };
 
-function onCollision(rocket, asteroid) {
+function onCollision(ship, asteroid) {
     hullHealth = hullHealth - 25;
     if(hullHealth <= 0) {
         asteroid.kill();
-        rocket.kill();
+        ship.kill();
         if(score > localStorage.getItem("highscore")) {
             localStorage.setItem("highscore" , score);
         }
@@ -268,7 +275,7 @@ function laserCollision(laser, asteroid) {
     asteroid.kill();
 }
 
-function powerupCollision(rocket, powerup) {
+function powerupCollision(ship, powerup) {
     console.log('collected a powerup');
     console.log(powerup.key)
     powerup.kill();
@@ -287,9 +294,11 @@ function powerupCollision(rocket, powerup) {
 function spawnShield() {
     // spawn new shield
     if(typeof shield == 'undefined') {
-        shield = game.add.sprite(rocket.world.x, rocket.world.y, 'shield1');
+        shield = game.add.sprite(ship.world.x, ship.world.y, 'shield1');
         shield.anchor.setTo(0.5,0.5);
-        shield.scale.setTo(0.5,0.5);
+        //shield.scale.setTo(0.5,0.5);
+        shield.height = 70;
+        shield.width = 100;
         game.physics.enable(shield, Phaser.Physics.ARCADE);
     }
 };
@@ -314,6 +323,6 @@ function shieldCollision(shield, asteroid) {
 function fireCoolDownUI() {
     cooldownText = "Reloading: " + fireCoolDown;
     cooldownTextStyle = { font: "12px Arial", fill: "#dddddd", align: "center" };
-    cooldownTextRender = game.add.text(rocket.x, rocket.y, cooldownText, cooldownTextStyle);
+    cooldownTextRender = game.add.text(ship.x, ship.y, cooldownText, cooldownTextStyle);
     cooldownTextRender.anchor.setTo(0.5,0.5);
 }
